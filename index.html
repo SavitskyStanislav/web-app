@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Base styles */
+    :root {
+      --primary-color: #73b873;
+      --primary-hover: #45a049;
+      --danger-color: #ff4444;
+      --border-color: #ccc;
+      --background-color: #f4f7fc;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --text-color: #333;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    /* Form container */
+    .form-container {
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      width: 100%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* Form elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: none;
+    }
+
+    /* Buttons */
+    .button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 24px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .button-danger {
+      background-color: var(--danger-color);
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    /* Payment section */
+    .payment-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .payment-date {
+      width: 160px;
+    }
+
+    .payment-amounts {
+      display: flex;
+      align-items: center;
+      flex-grow: 1;
+      gap: 16px;
+    }
+
+    .payment-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rubles {
+      width: 120px;
+    }
+
+    .kopeks {
+      width: 50px;
+    }
+
+    .vat-label {
+      margin: 0 8px;
+      white-space: nowrap;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* Loader */
+    .loader-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 5px solid var(--primary-color);
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      animation: rotation 1s linear infinite;
+    }
+
+    @keyframes rotation {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Utility classes */
+    .hidden {
+      display: none;
+    }
+
+    .error {
+      color: var(--danger-color);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <form id="templateForm">
+      <!-- Секция выбора конгресса и шаблона -->
+      <div id="congressTemplateFields">
+        <div class="form-group">
+          <label for="congress">Конгресс:</label>
+          <select id="congress" name="congress" required>
+            <option value="" disabled selected>Выберите конгресс</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="template">Шаблон:</label>
+          <select id="template" name="template" required>
+            <option value="" disabled selected>Выберите шаблон</option>
+          </select>
+        </div>
+
+        <div class="button-container">
+          <button type="button" class="button" id="nextButton">Далее</button>
+        </div>
+      </div>
+
+      <!-- Секция полей ввода -->
+      <div id="inputFields" class="hidden">
+        <div id="staticFields">
+          <!-- Номер договора -->
+          <div id="contractNumberField" class="form-group hidden">
+            <label for="contractNumber">Номер договора:</label>
+            <input type="text" id="contractNumber" name="contractNumber" required>
+          </div>
+
+          <!-- Номер доп. соглашения -->
+          <div id="addContractNumberField" class="form-group hidden">
+            <label for="addContractNumber">Номер дополнительного соглашения:</label>
+            <input type="text" id="addContractNumber" name="addContractNumber" required>
+          </div>
+
+          <!-- Дата договора -->
+          <div id="contractDateField" class="form-group hidden">
+            <label for="contractDate">Дата договора:</label>
+            <input type="date" id="contractDate" name="contractDate" required>
+          </div>
+
+          <!-- Дата доп. соглашения -->
+          <div id="addContractDateField" class="form-group hidden">
+            <label for="addContractDate">Дата дополнительного соглашения:</label>
+            <input type="date" id="addContractDate" name="addContractDate" required>
+          </div>
+
+          <!-- ИНН контрагента -->
+          <div id="contractClientInnField" class="form-group hidden">
+            <label for="contractClientInn">ИНН контрагента:</label>
+            <div style="display: flex; gap: 16px;">
+              <input type="text" id="contractClientInn" name="contractClientInn" required>
+              <button type="button" class="button" id="buttonClientInn">Получить данные</button>
+            </div>
+          </div>
+
+          <!-- Наименование контрагента -->
+          <div id="contractClientFullNameField" class="form-group hidden">
+            <label for="contractClientFullName">Наименование контрагента:</label>
+            <input type="text" id="contractClientFullName" name="contractClientFullName" required>
+          </div>
+
+          <!-- ФИО подписанта в РП -->
+          <div id="contractManagementNameGcField" class="form-group hidden">
+            <label for="contractManagementNameGc">ФИО подписанта в РП:</label>
+            <input type="text" id="contractManagementNameGc" name="contractManagementNameGc" required>
+          </div>
+
+          <!-- Фамилия и инициалы подписанта -->
+          <div id="contractManagementNameInitialsField" class="form-group hidden">
+            <label for="contractManagementNameInitials">Фамилия и инициалы подписанта:</label>
+            <input type="text" id="contractManagementNameInitials" name="contractManagementNameInitials" required>
+          </div>
+
+          <!-- Должность подписанта -->
+          <div id="contractManagementPostField" class="form-group hidden">
+            <label for="contractManagementPost">Должность подписанта:</label>
+            <input type="text" id="contractManagementPost" name="contractManagementPost" required>
+          </div>
+
+          <!-- Должность подписанта в РП -->
+          <div id="contractManagementPostGcField" class="form-group hidden">
+            <label for="contractManagementPostGc">Должность подписанта в РП:</label>
+            <input type="text" id="contractManagementPostGc" name="contractManagementPostGc" required>
+          </div>
+
+          <!-- Уполномочивающий документ в РП -->
+          <div id="contractManagementPostDocumentGcField" class="form-group hidden">
+            <label for="contractManagementPostDocumentGc">Уполномочивающий документ в РП:</label>
+            <input type="text" id="contractManagementPostDocumentGc" name="contractManagementPostDocumentGc" value="Устава" required>
+          </div>
+
+          <!-- Почтовый адрес -->
+          <div id="contractPostalAddressField" class="form-group hidden">
+            <label for="contractPostalAddress">Почтовый адрес:</label>
+            <input type="text" id="contractPostalAddress" name="contractPostalAddress" required>
+          </div>
+
+          <!-- Формат участия -->
+          <div id="contractFormatDataField" class="form-group hidden">
+            <label for="formatInput">Формат участия:</label>
+            <input list="formatOptions" id="formatInput" name="formatInput" autocomplete="off" required>
+            <datalist id="formatOptions"></datalist>
+          </div>
+
+          <!-- Опции участия -->
+          <div id="contractOptionsField" class="form-group hidden">
+            <label for="optionsTextarea">Опции участия:</label>
+            <textarea id="optionsTextarea" name="optionsTextarea" required></textarea>
+          </div>
+
+          <!-- Условия оплаты -->
+          <div id="contractPaymentsConditionsField" class="form-group hidden">
+            <label>Условия оплаты:</label>
+            <div id="payment-rows"></div>
+            <button type="button" class="button" onclick="PaymentManager.addPayment()">Добавить платёж</button>
+          </div>
+
+          <!-- Условия доплаты -->
+          <div id="contractAdditionalPaymentsField" class="form-group hidden">
+            <label>Условия доплаты:</label>
+            <div id="additional-payment-rows" class="additional-payments-container"></div>
+            <button type="button" class="button" onclick="AdditionalPaymentManager.addPayment()">Добавить доплату</button>
+          </div>
+
+          <!-- Цена договора -->
+          <div id="contractPriceField" class="form-group hidden">
+            <label>Цена договора:</label>
+            <div class="payment-amounts">
+              <div class="payment-inputs">
+                <input type="text" id="totalRubles" name="totalRubles" class="rubles" oninput="Utils.formatNumber(this)">
+                <span>.</span>
+                <input type="text" id="totalKopeks" name="totalKopeks" class="kopeks" value="00" maxlength="2" oninput="Utils.validateKopeks(this)" onblur="Utils.formatKopeksOnBlur(this)" onfocus="this.select()">
+              </div>
+              <span class="vat-label">вкл. НДС 5%:</span>
+              <div class="payment-inputs">
+                <input type="text" id="vatRubles" name="vatRubles" class="rubles" oninput="Utils.formatNumber(this)">
+                <span>.</span>
+                <input type="text" id="vatKopeks" name="vatKopeks" class="kopeks" value="00" maxlength="2" oninput="Utils.validateKopeks(this)" onblur="Utils.formatKopeksOnBlur(this)" onfocus="this.select()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-container">
+          <button type="button" class="button" onclick="FormManager.goBack()">Назад</button>
+          <button type="button" class="button" onclick="FormManager.submitFinalForm()">Отправить</button>
+        </div>
+      </div>
+
+      <!-- Секция скачивания -->
+      <div id="downloadButtonContainer" class="button-container hidden">
+        <a id="downloadDocxButton" href="#" download>
+          <button type="button" class="button">Скачать DOCX</button>
+        </a>
+        <a id="downloadPdfButton" href="#" download>
+          <button type="button" class="button">Скачать PDF</button>
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <div class="loader-container">
+    <div class="loader"></div>
+  </div>
+
+  <script>
+    const templatesData = {
+      "НЕФТЬ 4.0 3 2025": {
+        id: "neft2025",
+        templates: [
+          {
+            id: "neft2025_contract",
+            templateId: "1INYd7dhbEJpyckNn867Q3SKlUxS8O0JBRq9sepxMpQI",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Договор",
+            placeholders: ["{номер_договора}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+          {
+            id: "neft2025_agreement_main",
+            templateId: "19vuLMfC-ht-rZpGgFagiovyzUzTGXFBv4lyQWqHj7wc",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Дополнительное соглашение",
+            placeholders: ["{номер_договора}", "{номер_дс}", "{дата_дс}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+          {
+            id: "neft2025_agreement_vat_extra",
+            templateId: "1lwzvkj_oxz--ZkooFXEg34NVLIvwt_8KNesh-CCSNpY",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Дополнительное соглашение (доплата НДС)",
+            placeholders: ["{номер_договора}", "{номер_дс}", "{дата_дс}", "{дата_договора}", "{условия_доплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}"]
+          },
+          {
+            id: "neft2025_agreement_vat_update",
+            templateId: "1dokB-VwiTpKr0mOuipZDdATSAAle5PMAbtqfkLlKRzI",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Дополнительное соглашение (апдейт НДС)",
+            placeholders: ["{номер_договора}", "{номер_дс}", "{дата_дс}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+        ]
+      },
+      "СИНТЕЗИС 9 2025": {
+        id: "sintezis2025",
+        templates: [
+          {
+            id: "sintezis2025_contract",
+            templateId: "1IIkegHUgAwazahW6e7E3mToz0jziFwmgDvTHg_UVcEE",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Договор",
+            placeholders: ["{номер_договора}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+          {
+            id: "sintezis2025_agreement_main",
+            templateId: "19vuLMfC-ht-rZpGgFagiovyzUzTGXFBv4lyQWqHj7wc",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Дополнительное соглашение",
+            placeholders: ["{номер_договора}", "{номер_дс}", "{дата_дс}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+          {
+            id: "sintezis2025_agreement_vat_extra",
+            templateId: "1lwzvkj_oxz--ZkooFXEg34NVLIvwt_8KNesh-CCSNpY",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Дополнительное соглашение (доплата НДС)",
+            placeholders: ["{номер_договора}", "{номер_дс}", "{дата_дс}", "{дата_договора}", "{условия_доплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}"]
+          },
+          {
+            id: "sintezis2025_agreement_vat_update",
+            templateId: "1dokB-VwiTpKr0mOuipZDdATSAAle5PMAbtqfkLlKRzI",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Дополнительное соглашение (апдейт НДС)",
+            placeholders: ["{номер_договора}", "{номер_дс}", "{дата_дс}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+        ]
+      },
+      "NEDRA 4.0 1 2026": {
+        id: "nedra2026",
+        templates: [
+          {
+            id: "nedra2026_contract",
+            templateId: "14YB8ZZZumIPlZXNH-Lh476P3ANAqVXqX3PuIWzydxYo",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Договор",
+            placeholders: ["{номер_договора}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+          {
+            id: "nedra2026_agreement_main",
+            templateId: "19vuLMfC-ht-rZpGgFagiovyzUzTGXFBv4lyQWqHj7wc",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Дополнительное соглашение",
+            placeholders: ["{номер_договора}", "{номер_дс}", "{дата_дс}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+        ]
+      },
+      "НЕФТЬ 4.0 4 2026": {
+        id: "neft2026",
+        templates: [
+          {
+            id: "neft2026_contract",
+            templateId: "1w5oBcu5GYfPrW70ubL3FuvYg1MxkIwVdnUzubGS60Cs",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Договор",
+            placeholders: ["{номер_договора}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+          {
+            id: "neft2026_agreement_main",
+            templateId: "19vuLMfC-ht-rZpGgFagiovyzUzTGXFBv4lyQWqHj7wc",
+            folderId: "19ZGWwIDHIBkzGL_i3cbG5yM5jVr1ngUi",
+            name: "Дополнительное соглашение",
+            placeholders: ["{номер_договора}", "{номер_дс}", "{дата_дс}", "{дата_договора}", "{условия_оплаты}", "{цена_договора}", "{сумма_ндс}", "{инн_компании}", "{наименование_компании}", "{краткое_наименование_компании}", "{кпп_компании}", "{огрн_компании}", "{юр_адрес_компании}", "{фио_руководителя_род}", "{должность_руководителя_род}", "{должность_руководителя}", "{уполномочивающий_документ_род}", "{фио_руководителя_инициалы}", "{почтовый_адрес}", "{формат_участия}", "{опции_участия}"]
+          },
+        ]
+      },
+    };
+
+     // Менеджер состояния приложения
+    const AppState = {
+      selectedTemplatePlaceholders: [],
+      companyData: null,
+    };
+
+    // Утилиты для работы с датами и форматированием
+    const Utils = {
+      formatDate(dateString) {
+        const months = [
+          "января", "февраля", "марта", "апреля", "мая", "июня",
+          "июля", "августа", "сентября", "октября", "ноября", "декабря"
+        ];
+        const date = new Date(dateString);
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day} ${month} ${year} года`;
+      },
+
+      formatNumber(input) {
+        let value = input.value.replace(/\D/g, '');
+        value = value.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        input.value = value;
+      },
+
+      validateKopeks(input) {
+        // Получаем только цифры из введенного значения
+        let value = input.value.replace(/\D/g, '');
+        
+        // Ограничиваем длину до 2 символов
+        value = value.slice(0, 2);
+        
+        // Устанавливаем значение в поле
+        input.value = value;
+        
+        // Вызываем перерасчет общей суммы если поле находится в строке платежа
+        if (input.closest('.payment-row')) {
+          PaymentManager.calculateTotals();
+        }
+      },
+
+      validateAdditionalKopeks(input) {
+        // Получаем только цифры из введенного значения
+        let value = input.value.replace(/\D/g, '');
+        
+        // Ограничиваем длину до 2 символов
+        value = value.slice(0, 2);
+        
+        // Устанавливаем значение в поле
+        input.value = value;
+      }, 
+
+      formatKopeksOnBlur(input) {
+        let value = input.value;
+        
+        // Если поле пустое или содержит только нули
+        if (value === '' || parseInt(value) === 0) {
+          value = '00';
+        } else {
+          // Добавляем ведущий ноль для чисел меньше 10
+          value = value.padStart(2, '0');
+        }
+        
+        input.value = value;
+        
+        // Вызываем перерасчет общей суммы если поле находится в строке платежа
+        if (input.closest('.payment-row')) {
+          PaymentManager.calculateTotals();
+        }
+      },
+
+      removeSpaces(input) {
+        input.value = input.value.replace(/\s+/g, '');
+      }
+    };
+
+    // Менеджер платежей
+    const PaymentManager = {
+      addPayment() {
+        const container = document.getElementById('payment-rows');
+        const newRow = document.createElement('div');
+        newRow.className = 'payment-row';
+        newRow.innerHTML = `
+          <div class="payment-date">
+            <input type="date" oninput="PaymentManager.calculateTotals()">
+          </div>
+          <div class="payment-amounts">
+            <div class="payment-inputs">
+              <input type="text" class="rubles" oninput="Utils.formatNumber(this); PaymentManager.calculateVatForRow(this)">
+              <span>.</span>
+              <input type="text" class="kopeks" value="00" maxlength="2" oninput="Utils.validateKopeks(this); PaymentManager.calculateVatForRow(this)" onblur="Utils.formatKopeksOnBlur(this)" onfocus="this.select()">
+            </div>
+            <span class="vat-label">вкл. НДС 5%:</span>
+            <div class="payment-inputs">
+              <input type="text" class="rubles vat-rubles" oninput="Utils.formatNumber(this); PaymentManager.updateTotalVat()">
+              <span>.</span>
+              <input type="text" class="kopeks vat-kopeks" value="00" maxlength="2" oninput="Utils.validateKopeks(this); PaymentManager.updateTotalVat()" onblur="Utils.formatKopeksOnBlur(this)" onfocus="this.select()">
+            </div>
+          </div>
+          <button type="button" class="button button-danger" onclick="PaymentManager.removePayment(this)">×</button>
+        `;
+        
+        container.appendChild(newRow);
+        this.updateRemoveButtons();
+
+        // Добавляем обработчики событий для полей цены договора
+        document.getElementById('totalRubles').addEventListener('input', this.calculateContractVat);
+        document.getElementById('totalKopeks').addEventListener('input', this.calculateContractVat);
+      },
+
+      removePayment(button) {
+        const row = button.closest('.payment-row');
+        row.remove();
+        this.updateRemoveButtons();
+        this.calculateTotals();
+      },
+
+      updateRemoveButtons() {
+        const container = document.getElementById('payment-rows');
+        const removeButtons = container.getElementsByClassName('button-danger');
+        const showRemoveButtons = container.getElementsByClassName('payment-row').length > 1;
+        
+        Array.from(removeButtons).forEach(btn => {
+          btn.style.display = showRemoveButtons ? 'block' : 'none';
+        });
+      },
+
+      calculateVatForRow(input) {
+        const row = input.closest('.payment-row');
+        const vatRate = 5;
+        
+        const rublesStr = row.querySelector('.rubles:not(.vat-rubles)').value.replace(/\s/g, '');
+        const kopeksStr = row.querySelector('.kopeks:not(.vat-kopeks)').value;
+        
+        const rubles = parseInt(rublesStr) || 0;
+        const kopeks = parseInt(kopeksStr) || 0;
+        
+        const amount = rubles + (kopeks / 100);
+        const vatAmount = (amount * vatRate) / (100 + vatRate);
+        
+        const vatRubles = Math.floor(vatAmount);
+        const vatKopeks = Math.round((vatAmount - vatRubles) * 100);
+        
+        const vatRublesField = row.querySelector('.vat-rubles');
+        const vatKopeksField = row.querySelector('.vat-kopeks');
+        
+        vatRublesField.value = vatRubles.toLocaleString('ru-RU');
+        vatKopeksField.value = vatKopeks.toString().padStart(2, '0');
+        
+        this.calculateTotals();
+      },
+
+      calculateContractVat() {
+        const vatRate = 5;
+        
+        // Получаем значения рублей и копеек из полей цены договора
+        const rublesStr = document.getElementById('totalRubles').value.replace(/\s/g, '');
+        const kopeksStr = document.getElementById('totalKopeks').value;
+        
+        const rubles = parseInt(rublesStr) || 0;
+        const kopeks = parseInt(kopeksStr) || 0;
+        
+        const amount = rubles + (kopeks / 100);
+        const vatAmount = (amount * vatRate) / (100 + vatRate);
+        
+        // Обновляем поля НДС
+        document.getElementById('vatRubles').value = Math.floor(vatAmount).toLocaleString('ru-RU');
+        document.getElementById('vatKopeks').value = Math.round((vatAmount % 1) * 100).toString().padStart(2, '0');
+      },
+
+      calculateTotals() {
+        let total = 0;
+
+        // Считаем общую сумму из строк оплаты
+        document.querySelectorAll('.payment-row:not(#additional-payment-rows .payment-row)').forEach(row => {
+          const rublesStr = row.querySelector('.rubles:not(.additional-rubles)').value.replace(/\s/g, '');
+          const kopeksStr = row.querySelector('.kopeks:not(.additional-kopeks)').value;
+          
+          const rubles = parseInt(rublesStr) || 0;
+          const kopeks = parseInt(kopeksStr) || 0;
+          
+          total += rubles + (kopeks / 100);
+        });
+
+        // Обновляем итоговые суммы
+        document.getElementById('totalRubles').value = Math.floor(total).toLocaleString('ru-RU');
+        document.getElementById('totalKopeks').value = Math.round((total % 1) * 100).toString().padStart(2, '0');
+
+        // Рассчитываем НДС для цены договора
+        this.calculateContractVat();
+      },
+
+      updateTotalVat() {
+        // Эта функция теперь пустая, так как мы разрешаем ручное редактирование НДС
+        // и не пересчитываем его автоматически при изменении вручную
+      },
+
+      init() {
+        // Добавляем обработчики событий для полей цены договора при инициализации
+        document.getElementById('totalRubles').addEventListener('input', this.calculateContractVat);
+        document.getElementById('totalKopeks').addEventListener('input', this.calculateContractVat);
+      }
+    };
+
+    // Менеджер доплат
+    const AdditionalPaymentManager = {
+      addPayment() {
+        const container = document.getElementById('additional-payment-rows');
+        const newRow = document.createElement('div');
+        newRow.className = 'payment-row';
+        newRow.innerHTML = `
+          <div class="payment-date">
+            <input type="date">
+          </div>
+          <div class="payment-amounts">
+            <div class="payment-inputs">
+              <input type="text" class="rubles additional-rubles" oninput="Utils.formatNumber(this)">
+              <span>.</span>
+              <input type="text" class="kopeks additional-kopeks" value="00" maxlength="2" 
+                oninput="Utils.validateAdditionalKopeks(this)" 
+                onblur="Utils.formatKopeksOnBlur(this)" 
+                onfocus="this.select()">
+            </div>
+          </div>
+          <button type="button" class="button button-danger" onclick="AdditionalPaymentManager.removePayment(this)">×</button>
+        `;
+        
+        container.appendChild(newRow);
+        this.updateRemoveButtons();
+      },
+
+      removePayment(button) {
+        const row = button.closest('.payment-row');
+        row.remove();
+        this.updateRemoveButtons();
+      },
+
+      updateRemoveButtons() {
+        const container = document.getElementById('additional-payment-rows');
+        const removeButtons = container.getElementsByClassName('button-danger');
+        const showRemoveButtons = container.getElementsByClassName('payment-row').length > 1;
+        
+        Array.from(removeButtons).forEach(btn => {
+          btn.style.display = showRemoveButtons ? 'block' : 'none';
+        });
+      }
+    };
+
+    // Менеджер формы
+    const FormManager = {
+      init() {
+        this.loadTemplates();
+        this.initializeEventListeners();
+        // Добавляем первую строку платежа при инициализации
+
+        google.script.run
+          .withSuccessHandler(data => this.initializeParticipationForm(data))
+          .withFailureHandler(error => {
+          console.error('Ошибка при получении данных участия:', error);
+          })
+          .getParticipationData();
+
+        PaymentManager.addPayment();
+        AdditionalPaymentManager.addPayment();
+      },
+
+      initializeParticipationForm(participationData) {
+        if (participationData && !participationData.error) {
+            const formatInput = document.getElementById('formatInput');
+            const formatDatalist = document.getElementById('formatOptions');
+            const optionsTextarea = document.getElementById('optionsTextarea');
+
+            // Очистка старых данных
+            formatDatalist.innerHTML = '';
+
+            // Заполняем datalist форматами участия
+            Object.keys(participationData).forEach(format => {
+                const option = document.createElement('option');
+                option.value = format;
+                formatDatalist.appendChild(option);
+            });
+
+            // Добавляем обработчик изменения формата
+            formatInput.addEventListener('input', function () {
+                const selectedFormat = this.value;
+                optionsTextarea.value = participationData[selectedFormat] || '';
+                // Автоматически изменяем размер после установки значения
+                FormManager.autoResize(optionsTextarea);
+            });
+
+            // Добавляем обработчик для изменения размера при ручном вводе
+            optionsTextarea.addEventListener('input', function() {
+                FormManager.autoResize(this);
+            });
+        } else {
+            console.error("Ошибка получения данных: ", participationData.error);
+        }
+      },
+
+      autoResize(textarea) {
+        // Сбрасываем высоту в минимальное значение
+        textarea.style.height = 'auto';
+        // Устанавливаем высоту равной содержимому
+        textarea.style.height = textarea.scrollHeight + 'px';
+      },
+
+      loadTemplates() {
+        const congressSelect = document.getElementById("congress");
+        Object.keys(templatesData).forEach(congress => {
+          const option = document.createElement("option");
+          option.value = congress;
+          option.textContent = congress;
+          congressSelect.appendChild(option);
+        });
+      },
+
+      updateTemplates() {
+        const congress = document.getElementById("congress").value;
+        const templateSelect = document.getElementById("template");
+
+        templateSelect.innerHTML = "<option value='' disabled selected>Выберите шаблон</option>";
+
+        if (congress) {
+          templatesData[congress].templates.forEach(template => {
+            const option = document.createElement("option");
+            option.value = template.id;
+            option.textContent = template.name;
+            templateSelect.appendChild(option);
+          });
+        }
+      },
+
+      updateVisibleFields() {
+        const congress = document.getElementById("congress").value;
+        const templateId = document.getElementById("template").value;
+
+        if (congress && templateId) {
+          const selectedTemplate = templatesData[congress].templates.find(
+            template => template.id === templateId
+          );
+
+          AppState.selectedTemplatePlaceholders = selectedTemplate.placeholders || [];
+
+          document.querySelectorAll("#staticFields > div").forEach(field => {
+            field.classList.add("hidden");
+          });
+
+          const fieldMap = {
+            "{номер_договора}": "contractNumberField",
+            "{номер_дс}": "addContractNumberField",
+            "{дата_дс}": "addContractDateField",
+            "{дата_договора}": "contractDateField",
+            "{условия_оплаты}": "contractPaymentsConditionsField",
+            "{цена_договора}": "contractPriceField",
+            "{инн_компании}": "contractClientInnField",
+            "{наименование_компании}": "contractClientFullNameField",
+            "{фио_руководителя_род}": "contractManagementNameGcField",
+            "{должность_руководителя_род}": "contractManagementPostGcField",
+            "{должность_руководителя}": "contractManagementPostField",
+            "{уполномочивающий_документ_род}": "contractManagementPostDocumentGcField",
+            "{фио_руководителя_инициалы}": "contractManagementNameInitialsField",
+            "{почтовый_адрес}": "contractPostalAddressField",
+            "{формат_участия}": "contractFormatDataField",
+            "{опции_участия}": "contractOptionsField",
+            "{условия_доплаты}": "contractAdditionalPaymentsField",
+          };
+
+          AppState.selectedTemplatePlaceholders.forEach(placeholder => {
+            const fieldId = fieldMap[placeholder];
+            if (fieldId) {
+              document.getElementById(fieldId)?.classList.remove("hidden");
+            }
+          });
+        }
+      },
+
+      initializeEventListeners() {
+        document.getElementById("congress").addEventListener("change", () => this.updateTemplates());
+        document.getElementById("template").addEventListener("change", () => this.updateVisibleFields());
+        document.getElementById("nextButton").addEventListener("click", () => this.submitForm());
+        document.getElementById("buttonClientInn").addEventListener("click", () => this.getCompanyData());
+      },
+
+      submitForm() {
+        const congress = document.getElementById("congress").value;
+        const templateId = document.getElementById("template").value;
+
+        if (!congress || !templateId) {
+          alert("Пожалуйста, выберите конгресс и шаблон");
+          return;
+        }
+
+        document.getElementById("congressTemplateFields").style.display = "none";
+        document.getElementById("inputFields").style.display = "block";
+
+        const contractDateField = document.getElementById("contractDate");
+        if (contractDateField) {
+          contractDateField.value = new Date().toISOString().split("T")[0];
+        };
+
+        const addContractDateField = document.getElementById("addContractDate");
+        if (addContractDateField) {
+          addContractDateField.value = new Date().toISOString().split("T")[0];
+        };
+      },
+
+      goBack() {
+        document.getElementById("congressTemplateFields").style.display = "block";
+        document.getElementById("inputFields").style.display = "none";
+      },
+
+      getCompanyData() {
+        const companyInn = document.getElementById("contractClientInn").value;
+        
+        if (!companyInn) {
+          alert("Пожалуйста, введите ИНН");
+          return;
+        }
+
+        // Показываем индикатор загрузки
+        document.querySelector('.loader-container').style.display = 'flex';
+
+        google.script.run
+          .withSuccessHandler(response => {
+            document.querySelector('.loader-container').style.display = 'none';
+            
+            if (response && !response.error) {
+              AppState.companyData = response;
+              this.fillCompanyData(response);
+            } else {
+              alert("Ошибка получения данных компании: " + (response.error || "Неизвестная ошибка"));
+            }
+          })
+          .withFailureHandler(error => {
+            document.querySelector('.loader-container').style.display = 'none';
+            alert("Произошла ошибка при получении данных: " + error);
+          })
+          .getCompanyDataByInn(companyInn);
+      },
+
+      fillCompanyData(data) {
+        const fields = {
+          "contractClientFullName": data.name,
+          "contractManagementNameGc": data.managementNameGc,
+          "contractManagementNameInitials": data.managementNameInitials,
+          "contractManagementPost": data.managementPost,
+          "contractManagementPostGc": data.managementPostGc,
+          "contractPostalAddress": data.address
+        };
+
+        for (const [id, value] of Object.entries(fields)) {
+          const element = document.getElementById(id);
+          if (element) element.value = value;
+        }
+      },
+
+      getFormDataForPlaceholders() {
+        const data = {};
+        
+        for (const placeholder of AppState.selectedTemplatePlaceholders) {
+          let inputValue = null;
+
+          switch (placeholder) {
+            case "{номер_договора}":
+              inputValue = document.getElementById("contractNumber")?.value || "не указано";
+              break;
+
+            case "{номер_дс}":
+              inputValue = document.getElementById("addContractNumber")?.value || "не указано";
+              break;
+
+            case "{дата_договора}":
+              inputValue = Utils.formatDate(document.getElementById("contractDate")?.value) || "не указано";
+              break;
+
+            case "{дата_дс}":
+              inputValue = Utils.formatDate(document.getElementById("addContractDate")?.value) || "не указано";
+              break;
+
+            case "{условия_оплаты}":
+              const payments = [];
+              document.querySelectorAll('#payment-rows .payment-row').forEach(row => {
+                const rubles = row.querySelector('.rubles:not(.vat-rubles)').value;
+                const kopeks = row.querySelector('.kopeks:not(.vat-kopeks)').value;
+                const vatRubles = row.querySelector('.vat-rubles').value;
+                const vatKopeks = row.querySelector('.vat-kopeks').value;
+                const date = Utils.formatDate(row.querySelector('input[type="date"]').value);
+                payments.push({
+                  amount: `${rubles},${kopeks} рублей`,
+                  vat: `${vatRubles},${vatKopeks} рублей`,
+                  date: date
+                });
+              });
+              inputValue = payments.map(p => `До ${p.date} – ${p.amount}, в том числе НДС 5% - ${p.vat}`).join('\n');
+              break;
+
+            case "{условия_доплаты}":
+              const additionalPayments = [];
+              document.querySelectorAll('#additional-payment-rows .payment-row').forEach(row => {
+                const rubles = row.querySelector('.rubles').value;
+                const kopeks = row.querySelector('.kopeks').value;
+                const date = Utils.formatDate(row.querySelector('input[type="date"]').value);
+                additionalPayments.push({
+                  amount: `${rubles},${kopeks} рублей`,
+                  date: date
+                });
+              });
+              inputValue = additionalPayments.map(p => `До ${p.date} – ${p.amount}`).join('\n');
+              break;
+
+            case "{цена_договора}":
+              const totalRubles = document.getElementById("totalRubles").value;
+              const totalKopeks = document.getElementById("totalKopeks").value;
+              inputValue = `${totalRubles},${totalKopeks} рублей`;
+              break;
+
+            case "{сумма_ндс}":
+              const vatRubles = document.getElementById("vatRubles").value;
+              const vatKopeks = document.getElementById("vatKopeks").value;
+              inputValue = `${vatRubles},${vatKopeks} рублей`;
+              break;
+
+            // Данные компании
+            case "{инн_компании}":
+              inputValue = document.getElementById("contractClientInn").value;
+              break;
+
+            case "{наименование_компании}":
+              inputValue = document.getElementById("contractClientFullName").value;
+              break;
+
+            case "{краткое_наименование_компании}":
+              inputValue = AppState.companyData?.shortName;
+              break;
+
+            case "{кпп_компании}":
+              inputValue = AppState.companyData?.kpp;
+              break;
+
+            case "{огрн_компании}":
+              inputValue = AppState.companyData?.ogrn;
+              break;
+
+            case "{юр_адрес_компании}":
+              inputValue = AppState.companyData?.address;
+              break;
+
+            // Данные руководителя
+            case "{должность_руководителя}":
+              inputValue = document.getElementById("contractManagementPost").value;
+              break;
+
+            case "{должность_руководителя_род}":
+              inputValue = document.getElementById("contractManagementPostGc").value;
+              break;
+
+            case "{уполномочивающий_документ_род}":
+              inputValue = document.getElementById("contractManagementPostDocumentGc").value;
+              break;
+
+            case "{фио_руководителя_род}":
+              inputValue = document.getElementById("contractManagementNameGc").value;
+              break;
+
+            case "{фио_руководителя_инициалы}":
+              inputValue = document.getElementById("contractManagementNameInitials").value;
+              break;
+
+            case "{почтовый_адрес}":
+              inputValue = document.getElementById("contractPostalAddress").value;
+              break;
+
+            case "{формат_участия}":
+              inputValue = document.getElementById("formatInput").value;
+              break;
+
+            case "{опции_участия}":
+              inputValue = document.getElementById("optionsTextarea").value;
+              break;
+          }
+
+          if (inputValue) {
+            data[placeholder] = inputValue;
+          }
+        }
+
+        return data;
+      },
+
+      submitFinalForm() {
+        const formData = this.getFormDataForPlaceholders();
+        
+        if (Object.keys(formData).length === 0) {
+          alert("Заполните все обязательные поля!");
+          return;
+        }
+
+        const congress = document.getElementById("congress").value;
+        const templateId = document.getElementById("template").value;
+
+        if (!congress || !templateId) {
+          alert("Выберите конгресс и шаблон!");
+          return;
+        }
+
+        const selectedTemplate = templatesData[congress].templates.find(template => template.id === templateId);
+        const documentId = selectedTemplate.templateId;
+        const folderId = selectedTemplate.folderId;
+
+        const docVisibleName = `${selectedTemplate.name} ${document.getElementById("contractNumber").value} ${AppState.companyData.shortNameWithoutQuotes}`;
+
+        // Показываем индикатор загрузки
+        document.querySelector('.loader-container').style.display = 'flex';
+
+        google.script.run
+          .withSuccessHandler(response => {
+            document.querySelector('.loader-container').style.display = 'none';
+
+            const docxUrl = response.docxUrl;
+            const pdfUrl = response.pdfUrl;
+
+            const downloadButtonContainer = document.getElementById("downloadButtonContainer");
+            const downloadButtonDocx = document.getElementById("downloadDocxButton");
+            const downloadButtonPdf = document.getElementById("downloadPdfButton");
+
+            downloadButtonDocx.href = docxUrl;
+            downloadButtonPdf.href = pdfUrl;
+            downloadButtonContainer.classList.remove("hidden");
+          })
+          .withFailureHandler(error => {
+            document.querySelector('.loader-container').style.display = 'none';
+            alert('Произошла ошибка при генерации документов: ' + error);
+          })
+          .replacePlaceholdersInDocument(formData, documentId, folderId, docVisibleName);
+      }
+    };
+
+    // Инициализация приложения
+    window.onload = () => FormManager.init();
+
+  </script>
+</body>
+</html>
